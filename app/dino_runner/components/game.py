@@ -31,7 +31,7 @@ class Game:
                 self.playing = False
 
     def update(self):
-        self.dinosaur.update()
+        self.dinosaur.update(pygame.key.get_pressed())
 
     def draw(self):
         self.clock.tick(FPS)
