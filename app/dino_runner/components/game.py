@@ -1,9 +1,10 @@
 import pygame
 
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS
+from dino_runner.utils.constants import BG, HALF_SCREEN_HEIGHT, HALF_SCREEN_WIDTH, HEART, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS
 from dino_runner.utils import text_utils
 from dino_runner.components.dinosaur import Dinosaur
 from dino_runner.components.obstacle_manager import ObstacleManager
+from dino_runner.components.powerup_manager import PowerUpManager
 
 class Game:
     def __init__(self):
@@ -17,10 +18,12 @@ class Game:
         self.x_pos_bg = 0
         self.y_pos_bg = 380
         self.points = 0
+        self.hearts = 3
         self.games_played = 0
         self.game_running = True
         self.dinosaur = Dinosaur()
         self.obstacle_manager = ObstacleManager()
+        self.powerup_manager = PowerUpManager()
 
     def run(self):
         # Game loop: events - update - draw
@@ -35,9 +38,13 @@ class Game:
         self.games_played += 1
 
     def reset(self):
-        self.obstacle_manager.obstacles.clear()
+        self.obstacle_manager.reset()
+        self.powerup_manager.reset()
+        self.dinosaur.reset() 
         self.playing = True
+        self.game_speed = 20
         self.points = 0
+        self.hearts = 3
 
     def events(self):
         for event in pygame.event.get():
@@ -47,7 +54,8 @@ class Game:
 
     def update(self):
         self.dinosaur.update(pygame.key.get_pressed())
-        self.obstacle_manager.update(self, self.dinosaur)
+        self.obstacle_manager.update(self)
+        self.powerup_manager.update(self)
 
     def execute(self):
         while self.game_running:
@@ -71,10 +79,7 @@ class Game:
         self.handle_key_event_menu()
 
     def show_options_menu(self, text):
-        half_screen_height = SCREEN_HEIGHT // 2
-        half_screen_width = SCREEN_WIDTH // 2
-
-        text, text_rect = text_utils.get_text_element(text, half_screen_width, half_screen_height)
+        text, text_rect = text_utils.get_text_element(text, HALF_SCREEN_WIDTH, HALF_SCREEN_HEIGHT)
 
         self.screen.blit(text, text_rect)
 
@@ -96,6 +101,8 @@ class Game:
         self.show_score()
         self.dinosaur.draw(self.screen)
         self.obstacle_manager.draw(self.screen)
+        self.powerup_manager.draw(self.screen)
+        self.draw_hearts()
         pygame.display.update()
         pygame.display.flip()
 
@@ -105,6 +112,16 @@ class Game:
 
         text, text_rect = text_utils.get_score_element(self.points)
         self.screen.blit(text, text_rect)
+
+    def draw_hearts(self):
+        if self.hearts >= 3:
+            self.screen.blit(HEART, (SCREEN_WIDTH - 100, SCREEN_HEIGHT - 80))
+
+        if self.hearts >= 2:
+            self.screen.blit(HEART, (SCREEN_WIDTH - 140, SCREEN_HEIGHT - 80))
+
+        if self.hearts >= 1:
+            self.screen.blit(HEART, (SCREEN_WIDTH - 180, SCREEN_HEIGHT - 80))
 
     def draw_background(self):
         image_width = BG.get_width()
